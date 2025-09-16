@@ -1,20 +1,14 @@
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Account {
     private final String accountNumber;
-    private final String ownerUsername;
     private double balance;
     private final Lock lock = new ReentrantLock();
-    private final List<String> transactionHistory = new ArrayList<>();
 
-    public Account(String accountNumber, String ownerUsername, double initialBalance) {
+    public Account(String accountNumber, double initialBalance) {
         this.accountNumber = accountNumber;
-        this.ownerUsername = ownerUsername;
         this.balance = initialBalance;
-        logTransaction(String.format("Account created with initial balance: $%.2f", initialBalance));
     }
 
     public void deposit(double amount) {
@@ -22,7 +16,6 @@ public class Account {
         try {
             if (amount > 0) {
                 this.balance += amount;
-                logTransaction(String.format("Deposited $%.2f. New balance: $%.2f", amount, this.balance));
             }
         } finally {
             lock.unlock();
@@ -34,18 +27,12 @@ public class Account {
         try {
             if (amount > 0 && this.balance >= amount) {
                 this.balance -= amount;
-                logTransaction(String.format("Withdrew $%.2f. New balance: $%.2f", amount, this.balance));
                 return true;
             }
-            logTransaction(String.format("Failed withdrawal of $%.2f. Insufficient funds.", amount));
             return false;
         } finally {
             lock.unlock();
         }
-    }
-
-    private void logTransaction(String message) {
-        this.transactionHistory.add(message);
     }
 
     public double getBalance() {
@@ -60,21 +47,8 @@ public class Account {
     public String getAccountNumber() {
         return accountNumber;
     }
-    
-    public String getOwnerUsername() {
-        return ownerUsername;
-    }
 
     public Lock getLock() {
         return lock;
-    }
-
-    public List<String> getTransactionHistory() {
-        lock.lock();
-        try {
-            return new ArrayList<>(transactionHistory);
-        } finally {
-            lock.unlock();
-        }
     }
 }
